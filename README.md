@@ -2,9 +2,49 @@
 
 A proof of concept for serving HTML from an EVM smart contract, based on the proposed [EIP-8244: Contract-Hosted Application HTML](https://ethereum-magicians.org/t/erc-8244-contract-hosted-application-html/28407) standard.
 
-The contract exposes a single `html()` view function that returns a self-decompressing HTML document. The actual page content lives in `html/index.html`, is minified and gzip-compressed at build time, stored on-chain as contract bytecode, and inflated in the browser via `DecompressionStream("gzip")`.
+The contract exposes a single `html()` view function that returns a self-decompressing HTML document. Deployments use [Hardhat Ignition](https://hardhat.org/ignition/docs/getting-started), Hardhat's declarative deployment system.
 
-Deployments use [Hardhat Ignition](https://hardhat.org/ignition/docs/getting-started), Hardhat's declarative deployment system.
+## On-chain storage strategy
+
+Storing a full HTML document verbatim on-chain is expensive — every byte written to contract state costs gas, and contract bytecode is capped at 24 KB (EIP-170). This project minimizes on-chain footprint with a three-step pipeline inspired by [TamaSwap](https://github.com/Bacon-labs/tamaswap).
+
+### 1. Compress at build time
+
+`scripts/build.ts` reads `html/index.html` and applies three transforms before anything touches the blockchain:
+
+| Step | What it does | Hello World example |
+|------|--------------|---------------------|
+| Minify | Collapses whitespace between tags | 1,572 → 1,532 bytes |
+| Gzip (level 9) | Compresses the minified HTML | 1,532 → 851 bytes |
+| Base64 encode | Makes the binary gzip safe for ASCII storage | 851 → 1,136 bytes |
+
+The build script prints a compression report and warns if the final payload exceeds the 24 KB data-contract limit.
+
+### 2. Store as contract bytecode, not storage slots
+
+Rather than storing the HTML in expensive `SSTORE` slots inside the main contract, the constructor deploys a separate **data contract** whose runtime bytecode *is* the base64-encoded gzip payload. The main `HelloWorldFrontend` contract keeps only an immutable pointer (`HTML_DATA`) to that address.
+
+This SSTORE2-style pattern (also used by TamaSwap) keeps the deployable frontend contract small while the bulk of the data lives as cheap bytecode rather than mutable storage.
+
+### 3. Decompress in the browser
+
+`html()` does not return the full page directly. It returns a tiny bootstrap document containing:
+
+- A minimal HTML shell
+- The base64 payload embedded in a `<script>` tag
+- Client-side JavaScript that: base64-decodes → gunzips via `DecompressionStream("gzip")` → parses the result as HTML → injects it into the page
+
+Decompression happens in the user's browser, so the EVM never pays gas to expand the HTML. The local server (`npm run serve`) simply relays the bootstrap document from `html()`; the browser does the rest.
+
+```mermaid
+flowchart LR
+  source["html/index.html"] --> minify["Minify"]
+  minify --> gzip["Gzip level 9"]
+  gzip --> b64["Base64 encode"]
+  b64 --> dataContract["Data contract bytecode"]
+  dataContract --> htmlFn["html() bootstrap doc"]
+  htmlFn --> browser["Browser: gunzip + render"]
+```
 
 ## Prerequisites
 
