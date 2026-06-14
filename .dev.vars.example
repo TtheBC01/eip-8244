@@ -1,0 +1,5 @@
+# Copy to .dev.vars for local Worker development (wrangler dev).
+# .dev.vars is gitignored — never commit real RPC URLs or API keys.
+
+RPC_URL=https://your-rpc-endpoint.example.com
+CONTRACT_ADDRESS=0xYourDeployedContractAddress

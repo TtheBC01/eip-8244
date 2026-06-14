@@ -7,6 +7,8 @@
     "deploy:local": "node scripts/build.ts && hardhat compile && hardhat ignition deploy ignition/modules/HelloWorldFrontend.ts --network localhost",
     "deploy:sepolia": "node scripts/build.ts && hardhat compile --build-profile production && hardhat ignition deploy ignition/modules/HelloWorldFrontend.ts --network sepolia",
     "serve": "node scripts/serve.ts",
+    "deploy:worker": "node scripts/deploy-worker.ts",
+    "dev:worker": "wrangler dev",
     "update": "npm run deploy:local",
     "node": "hardhat node",
     "test": "hardhat test"
@@ -18,6 +20,7 @@
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
     "hardhat": "^3.9.0",
     "typescript": "~6.0.3",
-    "viem": "^2.52.2"
+    "viem": "^2.52.2",
+    "wrangler": "^4.100.0"
   }
 }

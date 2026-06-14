@@ -20,6 +20,11 @@
 .env
 .env.*
 !.env.example
+.dev.vars
+.wrangler
+
+# Wrangler local state
+.wrangler
 
 # Hardhat coverage reports
 /coverage
