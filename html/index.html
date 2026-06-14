@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hello, Onchain World</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    font: 16px/1.5 system-ui, sans-serif;
+    color: #f8fafc;
+    background: radial-gradient(circle at 50% -10%, #1e293b 0, #0f172a 60%, #020617 100%);
+  }
+  .card {
+    text-align: center;
+    padding: 40px 48px;
+    border-radius: 24px;
+    background: #0b122480;
+    border: 1px solid #1e293b;
+    box-shadow: 0 24px 70px #00000066;
+  }
+  h1 { margin: 0 0 8px; font-size: 32px; }
+  p { margin: 4px 0; color: #94a3b8; }
+  .badge {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+    background: #16a34a22;
+    color: #4ade80;
+    border: 1px solid #16a34a55;
+  }
+  code { color: #f0abfc; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hello, onchain world</h1>
+    <p>This document is served entirely from a smart contract.</p>
+    <p>Stored gzip + base64, inflated in your browser via <code>DecompressionStream</code>.</p>
+    <div id="wallet" class="badge">Checking wallet…</div>
+  </div>
+  <script>
+    // Proves inline scripts in the decompressed document still execute.
+    const el = document.getElementById("wallet");
+    el.textContent = window.ethereum
+      ? "EIP-1193 wallet detected"
+      : "No window.ethereum wallet found";
+  </script>
+</body>
+</html>
